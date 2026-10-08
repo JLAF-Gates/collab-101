@@ -1,5 +1,6 @@
 import random
 
+# 1
 
 def generate_random_number(min_value=1, max_value=100):
     """
