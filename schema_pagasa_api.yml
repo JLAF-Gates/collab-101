@@ -1,0 +1,1006 @@
+dataset:
+  id: pagasa_weather_hazard
+  name: PAGASA Weather and Hazard Data
+  layer: silver
+  schema_version: '1.0'
+  status: draft
+  description: Ingestion and canonical schema contract for PAGASA weather, observation, lightning, hazard, issuance, and geographic datasets.
+  source_basis: PAGASA_API_Schema_Table_v4.xlsx
+  assumptions:
+  - The data dictionary is the authoritative source for detailed field definitions, labels, aliases, and business meanings.
+  - This schema contract contains only structural and validation-related metadata required by ingestion and transformation processes.
+  - Foreign-key relationships, table grain, and historical uniqueness rules require validation against actual PAGASA API data and business rules.
+  - Forecasts and Hazard Events are referenced as external dependencies because their detailed structures are not included in the provided schema.
+  - Geographic locations may represent administrative locations as well as point locations with latitude and longitude.
+  - Observation values are associated with observation parameters, monitoring stations, observation timestamps, and units of measure.
+  tables:
+
+  - name: Monitoring Stations
+    table_id: monitoring_stations
+    fields:
+    - name: monitoring_station_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: monitoring_station_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: monitoring_station_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: elevation
+      data_type: decimal
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: elevation_unit_id
+      data_type: integer
+      references: units_of_measure.unit_of_measure_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: monitoring_station_type_id
+      data_type: integer
+      references: monitoring_station_types.monitoring_station_type_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: location_id
+      data_type: integer
+      references: geographic_locations.location_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: organization_id
+      data_type: integer
+      references: organizations.organization_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: monitoring_station_status_id
+      data_type: integer
+      references: monitoring_station_statuses.monitoring_station_status_id
+      required: false
+      primary_key: false
+      foreign_key: true
+
+  - name: Monitoring Station Types
+    table_id: monitoring_station_types
+    fields:
+    - name: monitoring_station_type_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: monitoring_station_type_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: monitoring_station_type_abbreviation
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: monitoring_station_type_description
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Monitoring Station Statuses
+    table_id: monitoring_station_statuses
+    fields:
+    - name: monitoring_station_status_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: monitoring_station_status_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: monitoring_station_status_description
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Monitoring Station Statuses History
+    table_id: monitoring_station_statuses_history
+    fields:
+    - name: monitoring_station_status_history_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: monitoring_station_id
+      data_type: integer
+      references: monitoring_stations.monitoring_station_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: monitoring_station_status_id
+      data_type: integer
+      references: monitoring_station_statuses.monitoring_station_status_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: effective_start_date
+      data_type: date
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: effective_end_date
+      data_type: date
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Observation Parameters
+    table_id: observation_parameters
+    fields:
+    - name: observation_parameter_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: observation_parameter_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: observation_parameter_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: observation_parameter_description
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: is_derived
+      data_type: boolean
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Observations
+    table_id: observations
+    fields:
+    - name: observation_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: observed_at
+      data_type: timestamp
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: observed_value
+      data_type: decimal
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: unit_of_measure_id
+      data_type: integer
+      references: units_of_measure.unit_of_measure_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: observation_parameter_id
+      data_type: integer
+      references: observation_parameters.observation_parameter_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: monitoring_station_id
+      data_type: integer
+      references: monitoring_stations.monitoring_station_id
+      required: true
+      primary_key: false
+      foreign_key: true
+
+  - name: Lightning Events
+    table_id: lightning_events
+    fields:
+    - name: lightning_event_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: lightning_time
+      data_type: timestamp
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: height
+      data_type: decimal
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: height_unit_id
+      data_type: integer
+      references: units_of_measure.unit_of_measure_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: amplitude
+      data_type: decimal
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: amplitude_unit_id
+      data_type: integer
+      references: units_of_measure.unit_of_measure_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: flash_type_id
+      data_type: integer
+      references: flash_types.flash_type_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: location_id
+      data_type: integer
+      references: geographic_locations.location_id
+      required: false
+      primary_key: false
+      foreign_key: true
+
+  - name: Flash Types
+    table_id: flash_types
+    fields:
+    - name: flash_type_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: flash_type_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: flash_type_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: flash_type_description
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Weather Systems
+    table_id: weather_systems
+    fields:
+    - name: weather_system_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: weather_system_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: weather_system_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: weather_system_description
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Issuances
+    table_id: issuances
+    fields:
+    - name: issuance_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: issuance_at
+      data_type: timestamp
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: valid_until
+      data_type: timestamp
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: issued_number
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: organization_id
+      data_type: integer
+      references: organizations.organization_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: issuance_type_id
+      data_type: integer
+      references: issuance_types.issuance_type_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: weather_system_id
+      data_type: integer
+      references: weather_systems.weather_system_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: hazard_event_id
+      data_type: integer
+      references: hazard_events.hazard_event_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: forecast_id
+      data_type: integer
+      references: forecasts.forecast_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: generated_message
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: optional_message
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Issuance Types
+    table_id: issuance_types
+    fields:
+    - name: issuance_type_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: issuance_type_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: issuance_type_description
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Affected Areas
+    table_id: affected_areas
+    fields:
+    - name: affected_area_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: issuance_id
+      data_type: integer
+      references: issuances.issuance_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: expected_intensity_id
+      data_type: integer
+      references: expected_intensities.expected_intensity_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: warning_level_id
+      data_type: integer
+      references: warning_levels.warning_level_id
+      required: false
+      primary_key: false
+      foreign_key: true
+
+  - name: Locations Affected Areas
+    table_id: locations_affected_areas
+    key_definition:
+      type: surrogate
+      primary_key: location_affected_area_id
+      unique_constraints:
+      - columns:
+        - location_id
+        - affected_area_id
+    fields:
+    - name: location_affected_area_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: location_id
+      data_type: integer
+      references: geographic_locations.location_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: affected_area_id
+      data_type: integer
+      references: affected_areas.affected_area_id
+      required: true
+      primary_key: false
+      foreign_key: true
+
+  - name: Warning Levels
+    table_id: warning_levels
+    fields:
+    - name: warning_level_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: warning_level_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: warning_level_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: warning_level_description
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Expected Intensities
+    table_id: expected_intensities
+    fields:
+    - name: expected_intensity_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: expected_intensity_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: expected_intensity_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: expected_intensity_description
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Geographic Locations
+    table_id: geographic_locations
+    fields:
+    - name: location_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: country_id
+      data_type: integer
+      references: countries.country_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: region_id
+      data_type: integer
+      references: regions.region_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: province_id
+      data_type: integer
+      references: provinces.province_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: city_municipality_id
+      data_type: integer
+      references: cities_and_municipalities.city_municipality_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: barangay_id
+      data_type: integer
+      references: barangays.barangay_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: longitude
+      data_type: decimal
+      required: false
+      primary_key: false
+      foreign_key: false
+      precision: 10
+      scale: 6
+    - name: latitude
+      data_type: decimal
+      required: false
+      primary_key: false
+      foreign_key: false
+      precision: 10
+      scale: 6
+    - name: geo_ref_sys_id
+      data_type: integer
+      references: geographic_reference_systems.geo_ref_sys_id
+      required: false
+      primary_key: false
+      foreign_key: true
+
+  - name: Organizations
+    table_id: organizations
+    fields:
+    - name: organization_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: organization_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: organization_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: location_id
+      data_type: integer
+      references: geographic_locations.location_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: organization_type_id
+      data_type: integer
+      references: organization_types.organization_type_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: organization_role_id
+      data_type: integer
+      references: organization_roles.organization_role_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: industry_sector_id
+      data_type: integer
+      references: industry_sectors.industry_sector_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: organization_status_id
+      data_type: integer
+      references: organization_statuses.organization_status_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: parent_organization_id
+      data_type: integer
+      references: organizations.organization_id
+      required: false
+      primary_key: false
+      foreign_key: true
+
+  - name: Organization Types
+    table_id: organization_types
+    fields:
+    - name: organization_type_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: organization_type_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: organization_type_description
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Organization Roles
+    table_id: organization_roles
+    fields:
+    - name: organization_role_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: organization_role_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: organization_role_description
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Industry Sectors
+    table_id: industry_sectors
+    fields:
+    - name: industry_sector_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: industry_sector_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: industry_sector_description
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Organization Statuses
+    table_id: organization_statuses
+    fields:
+    - name: organization_status_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: organization_status_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: organization_status_description
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Organization Statuses History
+    table_id: organization_statuses_history
+    fields:
+    - name: organization_status_history_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: organization_id
+      data_type: integer
+      references: organizations.organization_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: organization_status_id
+      data_type: integer
+      references: organization_statuses.organization_status_id
+      required: true
+      primary_key: false
+      foreign_key: true
+    - name: effective_start_date
+      data_type: date
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: effective_end_date
+      data_type: date
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Countries
+    table_id: countries
+    fields:
+    - name: country_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: country_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+
+  - name: Regions
+    table_id: regions
+    fields:
+    - name: region_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: psgc_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: correspondence_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: region_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: island_region_id
+      data_type: integer
+      references: island_regions.island_region_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: geographic_level_id
+      data_type: integer
+      references: geographic_levels.geographic_level_id
+      required: false
+      primary_key: false
+      foreign_key: true
+
+  - name: Provinces
+    table_id: provinces
+    fields:
+    - name: province_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: psgc_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: correspondence_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: province_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: island_region_id
+      data_type: integer
+      references: island_regions.island_region_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: geographic_level_id
+      data_type: integer
+      references: geographic_levels.geographic_level_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: city_class_id
+      data_type: integer
+      references: city_classifications.city_class_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: region_id
+      data_type: integer
+      references: regions.region_id
+      required: true
+      primary_key: false
+      foreign_key: true
+
+  - name: Cities and Municipalities
+    table_id: cities_and_municipalities
+    fields:
+    - name: city_municipality_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: psgc_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: correspondence_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: city_municipality_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: island_region_id
+      data_type: integer
+      references: island_regions.island_region_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: geographic_level_id
+      data_type: integer
+      references: geographic_levels.geographic_level_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: city_class_id
+      data_type: integer
+      references: city_classifications.city_class_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: province_id
+      data_type: integer
+      references: provinces.province_id
+      required: true
+      primary_key: false
+      foreign_key: true
+
+  - name: Barangays
+    table_id: barangays
+    fields:
+    - name: barangay_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: psgc_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: correspondence_code
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: barangay_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: island_region_id
+      data_type: integer
+      references: island_regions.island_region_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: geographic_level_id
+      data_type: integer
+      references: geographic_levels.geographic_level_id
+      required: false
+      primary_key: false
+      foreign_key: true
+    - name: city_municipality_id
+      data_type: integer
+      references: cities_and_municipalities.city_municipality_id
+      required: true
+      primary_key: false
+      foreign_key: true
+
+  - name: Geographic Reference Systems
+    table_id: geographic_reference_systems
+    fields:
+    - name: geo_ref_sys_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: geo_ref_sys_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: geo_ref_sys_authority
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Island Regions
+    table_id: island_regions
+    fields:
+    - name: island_region_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: island_region_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+
+  - name: Geographic Levels
+    table_id: geographic_levels
+    fields:
+    - name: geographic_level_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: geographic_level_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+
+  - name: City Classifications
+    table_id: city_classifications
+    fields:
+    - name: city_class_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: city_class_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+
+  - name: Unit Types
+    table_id: unit_types
+    fields:
+    - name: unit_type_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: unit_type_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: unit_type_description
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+
+  - name: Units of Measure
+    table_id: units_of_measure
+    fields:
+    - name: unit_of_measure_id
+      data_type: integer
+      required: true
+      primary_key: true
+      foreign_key: false
+    - name: unit_name
+      data_type: string
+      required: true
+      primary_key: false
+      foreign_key: false
+    - name: unit_symbol
+      data_type: string
+      required: false
+      primary_key: false
+      foreign_key: false
+    - name: unit_type_id
+      data_type: integer
+      references: unit_types.unit_type_id
+      required: false
+      primary_key: false
+      foreign_key: true
