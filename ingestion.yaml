@@ -1,0 +1,39 @@
+# config.yaml
+
+application:
+  name: NAVIGATES
+  version: "1.0.0"
+  environment: development
+  debug: true
+
+server:
+  host: 0.0.0.0
+  port: 8322
+
+database:
+  engine: postgresql
+  host: localhost
+  port: 5433
+  name: dev_navigates_database
+  user: postgres
+  password: your_password
+
+storage:
+  type: minio
+  endpoint: http://localhost:9000
+  access_key: your_access_key
+  secret_key: your_secret_key
+  buckets:
+    landing: landing
+    bronze: bronze
+    silver: silver
+    gold: gold
+
+logging:
+  level: INFO
+  file: logs/application.log
+
+features:
+  oidc_enabled: true
+  eda_enabled: true
+  audit_logging: true
